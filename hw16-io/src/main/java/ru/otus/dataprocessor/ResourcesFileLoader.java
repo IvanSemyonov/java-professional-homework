@@ -12,17 +12,19 @@ import java.util.List;
 
 public class ResourcesFileLoader implements Loader {
 
-    private final String file;
+    private final String fileName;
 
     public ResourcesFileLoader(String fileName) {
-        this.file = ClassLoader.getSystemResource(fileName).getFile();
+        this.fileName = fileName;
     }
 
     @Override
-    public List<Measurement> load() throws IOException {
+    public List<Measurement> load() {
         Gson gson = new Gson();
-        try(InputStreamReader reader = new InputStreamReader(new FileInputStream(file))) {
+        try(InputStreamReader reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(fileName))) {
             return gson.fromJson(reader, new TypeToken<List<Measurement>>(){}.getType());
+        } catch (IOException ex) {
+            throw new FileProcessException(ex);
         }
     }
 }

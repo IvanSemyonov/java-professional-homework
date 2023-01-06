@@ -15,12 +15,14 @@ public class FileSerializer implements Serializer {
     }
 
     @Override
-    public void serialize(Map<String, Double> data) throws IOException {
+    public void serialize(Map<String, Double> data) {
         //формирует результирующий json и сохраняет его в файл
         Gson gson = new Gson();
         try(OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(fileURI))) {
             gson.toJson(data, writer);
+        } catch (IOException ex) {
+            throw new FileProcessException(ex);
         }
     }
 }
