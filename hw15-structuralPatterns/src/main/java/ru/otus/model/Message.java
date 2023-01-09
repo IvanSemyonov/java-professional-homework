@@ -91,9 +91,10 @@ public class Message {
         return copyField13;
     }
 
-    public static Message fromMessage(Message message) {
-        return message.toBuilder()
-                .field13(message.getField13())
+    @Override
+    public Message clone() {
+        return this.toBuilder()
+                .field13(getField13())
                 .build();
     }
 
@@ -151,7 +152,7 @@ public class Message {
         private String field11;
         private String field12;
         private ObjectForMessage field13;
-        
+
 
         public Builder(long id) {
             this.id = id;

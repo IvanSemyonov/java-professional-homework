@@ -14,12 +14,11 @@ public class HistoryListener implements Listener, HistoryReader {
 
     @Override
     public void onUpdated(Message msg) {
-        messageHistory.put(msg.getId(), msg.toBuilder().build());
+        messageHistory.put(msg.getId(), msg.clone());
     }
 
     @Override
     public Optional<Message> findMessageById(long id) {
-        return Optional.ofNullable(messageHistory.get(id))
-                .map(Message::fromMessage);
+        return Optional.ofNullable(messageHistory.get(id));
     }
 }
