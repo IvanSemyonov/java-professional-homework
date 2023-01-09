@@ -6,10 +6,10 @@ public class ObjectForMessage {
     private List<String> data;
 
     public List<String> getData() {
-        return data;
+        return List.copyOf(data);
     }
 
     public void setData(List<String> data) {
-        this.data = data;
+        this.data = List.copyOf(data);
     }
 }
