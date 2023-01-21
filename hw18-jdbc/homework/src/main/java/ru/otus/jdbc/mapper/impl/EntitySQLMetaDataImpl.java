@@ -4,52 +4,66 @@ import ru.otus.jdbc.mapper.EntityClassMetaData;
 import ru.otus.jdbc.mapper.EntitySQLMetaData;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.StringJoiner;
 
 
 public class EntitySQLMetaDataImpl<T> implements EntitySQLMetaData {
 
-    private final EntityClassMetaData<T> entityClassMetaData;
+    private final String selectAllQuery;
+    private final String selectByIdQuery;
+    private final String insertQuery;
+    private final String updateQuery;
+
+
 
     public EntitySQLMetaDataImpl(EntityClassMetaData<T> entityClassMetaData) {
-        this.entityClassMetaData = entityClassMetaData;
-    }
-
-    @Override
-    public String getSelectAllSql() {
-        return "select * from " + entityClassMetaData.getName();
-    }
-
-    @Override
-    public String getSelectByIdSql() {
         String idFieldName = entityClassMetaData.getIdField().getName();
-        return "select * from " + entityClassMetaData.getName() + " where " + idFieldName + " = ?";
+        String tableName = entityClassMetaData.getName();
+        List<Field> fieldsWithoutId = entityClassMetaData.getFieldsWithoutId();
+        this.selectAllQuery = "select * from " + tableName;
+        this.selectByIdQuery = "select * from " + tableName + " where " + idFieldName + " = ?";
+        this.insertQuery = buildInsertQuery(tableName, fieldsWithoutId);
+        this.updateQuery = buildUpdateQuery(tableName, idFieldName, fieldsWithoutId);
     }
 
-    @Override
-    public String getInsertSql() {
+    private String buildInsertQuery(String tableName, List<Field> fieldsWithoutId) {
         StringJoiner columns = new StringJoiner(",", "(", ")");
         StringJoiner values = new StringJoiner(",", "(", ")");
 
-        for (Field field : entityClassMetaData.getFieldsWithoutId()) {
+        for (Field field : fieldsWithoutId) {
             columns.add(field.getName());
             values.add("?");
         }
 
-        return "insert into " + entityClassMetaData.getName() + " " + columns + " values" + values;
+        return "insert into " + tableName + " " + columns + " values" + values;
+    }
+
+    private String buildUpdateQuery(String tableName, String idFieldName, List<Field> fieldsWithoutId) {
+        StringJoiner columns = new StringJoiner(",");
+        for (Field field : fieldsWithoutId) {
+            columns.add(field.getName() + " = ?");
+        }
+        return "update " + tableName + " set " + columns + " where " + idFieldName + " = ?";
+    }
+
+    @Override
+    public String getSelectAllSql() {
+        return selectAllQuery;
+    }
+
+    @Override
+    public String getSelectByIdSql() {
+        return selectByIdQuery;
+    }
+
+    @Override
+    public String getInsertSql() {
+        return insertQuery;
     }
 
     @Override
     public String getUpdateSql() {
-        StringJoiner columns = new StringJoiner(",");
-
-        for (Field field : entityClassMetaData.getFieldsWithoutId()) {
-            columns.add(field.getName() + " = ?");
-        }
-
-        String idFieldName = entityClassMetaData.getIdField().getName();
-
-        return "update " + entityClassMetaData.getName() + " set " + columns
-                + " where " + idFieldName + " = ?";
+        return updateQuery;
     }
 }

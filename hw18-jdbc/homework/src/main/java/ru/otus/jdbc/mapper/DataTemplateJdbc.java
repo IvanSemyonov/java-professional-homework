@@ -1,10 +1,8 @@
 package ru.otus.jdbc.mapper;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.otus.core.repository.DataTemplate;
+import ru.otus.core.repository.DataTemplateException;
 import ru.otus.core.repository.executor.DbExecutor;
-import ru.otus.annotations.Id;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -36,7 +34,7 @@ public class DataTemplateJdbc<T> implements DataTemplate<T> {
             try {
                 return resultSet.next() ? buildClient(resultSet) : null;
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new DataTemplateException(e);
             }
         });
     }
@@ -52,7 +50,7 @@ public class DataTemplateJdbc<T> implements DataTemplate<T> {
                 }
                 return objects;
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new DataTemplateException(e);
             }
         }).orElse(Collections.emptyList());
     }
@@ -95,7 +93,7 @@ public class DataTemplateJdbc<T> implements DataTemplate<T> {
             }
             return client;
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+            throw new DataTemplateException(e);
         }
     }
 
@@ -106,7 +104,7 @@ public class DataTemplateJdbc<T> implements DataTemplate<T> {
             field.set(client, value);
         } catch (SQLException e) {
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new DataTemplateException(e);
         }
     }
 }

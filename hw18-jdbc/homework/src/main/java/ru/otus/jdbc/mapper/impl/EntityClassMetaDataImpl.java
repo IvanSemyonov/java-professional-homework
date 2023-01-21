@@ -6,47 +6,56 @@ import ru.otus.jdbc.mapper.EntityClassMetaData;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 public class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T> {
 
-    protected final Class<T> persistentClass;
+    private final Constructor<T> constructor;
+    private final Field idField;
+    private final List<Field> allFields;
+    private final List<Field> fieldsWithoutId;
+
+    private final String name;
 
     public EntityClassMetaDataImpl(Class<T> persistentClass) {
-        this.persistentClass = persistentClass;
+        try {
+            this.constructor = persistentClass.getConstructor();
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        this.name = persistentClass.getSimpleName().toLowerCase();
+        this.allFields = Arrays.asList(persistentClass.getDeclaredFields());
+        this.idField = this.allFields.stream()
+                .filter(field -> field.isAnnotationPresent(Id.class))
+                .findFirst()
+                .orElseThrow();
+        this.fieldsWithoutId = this.allFields.stream()
+                .filter(Predicate.not(this.idField::equals))
+                .toList();
     }
 
     @Override
     public String getName() {
-        return persistentClass.getSimpleName().toLowerCase();
+        return name;
     }
 
     @Override
     public Constructor<T> getConstructor() {
-        try {
-            return persistentClass.getConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        return constructor;
     }
 
     @Override
     public Field getIdField() {
-        return Arrays.stream(persistentClass.getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(Id.class))
-                .findFirst()
-                .orElseThrow();
+        return idField;
     }
 
     @Override
     public List<Field> getAllFields() {
-        return Arrays.asList(persistentClass.getDeclaredFields());
+        return allFields;
     }
 
     @Override
     public List<Field> getFieldsWithoutId() {
-        return Arrays.stream(persistentClass.getDeclaredFields())
-                .filter(field -> !field.isAnnotationPresent(Id.class))
-                .collect(Collectors.toList());
+        return fieldsWithoutId;
     }
 }
