@@ -1,16 +1,11 @@
 package ru.otus.crm.model;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -29,6 +24,12 @@ public class Client implements Cloneable {
     @Column(name = "name")
     private String name;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private Address address;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "client")
+    private List<Phone> phones;
+
     public Client(String name) {
         this.id = null;
         this.name = name;
@@ -39,9 +40,30 @@ public class Client implements Cloneable {
         this.name = name;
     }
 
+    public Client(Long id, String name, Address address, List<Phone> phones) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        phones.forEach(phone -> phone.setClient(this));
+        this.phones = phones;
+    }
+
+    public Client(Long id, String name, Address address) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+    }
+
     @Override
     public Client clone() {
-        return new Client(this.id, this.name);
+        Address addressClone = this.address.clone();
+        Client client = new Client(this.id, this.name, addressClone);
+        List<Phone> phonesClone = this.phones.stream()
+                .map(Phone::clone)
+                .peek(phone -> phone.setClient(client))
+                .toList();
+        client.setPhones(phonesClone);
+        return client;
     }
 
     @Override
