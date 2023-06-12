@@ -27,6 +27,7 @@ allprojects {
             dependency "org.openjdk.jmh:jmh-generator-annprocess:${Versions.jmh}"
             dependency "org.ow2.asm:asm-commons:${Versions.asm}"
             dependency("org.glassfish:jakarta.json:${Versions.glassfishJson}")
+            dependency("org.ehcache:ehcache:$Versions.ehcache")
 
             dependency("org.projectlombok:lombok:${Versions.lombok}")
             dependency("com.google.code.gson:gson:${Versions.gson}")
