@@ -17,6 +17,7 @@ public interface Versions {
     String freemarker = "2.3.31";
 
     String reflections = "0.10.2";
+    String ehcache = "3.10.8";
 
 
 }
