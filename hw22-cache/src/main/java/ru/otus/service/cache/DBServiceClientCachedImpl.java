@@ -28,14 +28,16 @@ public class DBServiceClientCachedImpl implements DBServiceClient {
 
     @Override
     public Optional<Client> getClient(long id) {
-        return Optional.ofNullable((Client) clientHwCache.get(String.valueOf(id)))
-                .or(() -> dbServiceClient.getClient(id)
-                        .map(this::saveToCache));
+        Optional<Client> client = Optional.ofNullable((Client) clientHwCache.get(String.valueOf(id)));
+        if (client.isEmpty()) {
+            client = dbServiceClient.getClient(id);
+            client.ifPresent(this::saveToCache);
+        }
+        return client;
     }
 
-    private Client saveToCache(Client client) {
+    private void saveToCache(Client client) {
         clientHwCache.put(String.valueOf(client.getId()), client);
-        return client;
     }
 
     @Override
