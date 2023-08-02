@@ -1,0 +1,125 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Пользователи</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            getAllClients()
+        })
+
+        function getAllClients() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/clients", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                var table = document.getElementById("clientsTable")
+                var rowCount = table.rows.length;
+                for (var i = rowCount - 1; i > 0; i--) {
+                    table.deleteRow(i);
+                }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var clients = JSON.parse(xhr.responseText);
+                    var tableBody = '';
+
+                    for (var i = 0; i < clients.length; i++) {
+                        var client = clients[i];
+                        var phones = client.phones.join(", ");
+                        var address = "";
+                        if (client.address != null) {
+                            address = client.address.street;
+                        }
+                        var row = '<tr><td>' + client.id + '</td><td>' + client.name + '</td><td>' + address + '</td><td>' + phones + '</td></tr>';
+                        tableBody += row;
+                    }
+
+                    table.innerHTML += tableBody;
+                }
+                if (xhr.readyState === 4 && xhr.status !== 200) {
+                    console.log("Ошибка при получении данных:", xhr.statusText);
+                }
+            };
+            xhr.send();
+        }
+
+
+        function submitForm() {
+            var form = document.getElementById('createClientForm'); // Замените 'myForm' на id вашей формы
+            var formData = new FormData(form);
+
+            var jsonObject = {};
+            formData.forEach(function(value, key) {
+                jsonObject[key] = value;
+            });
+
+            var jsonData = JSON.stringify(jsonObject);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/clients');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        getAllClients()
+                        console.log(xhr.responseText);
+                    } else {
+                        console.error(xhr.statusText);
+                    }
+                }
+            };
+
+            xhr.send(jsonData);
+        }
+    </script>
+
+    <style>
+        .newClientForm {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 300px;
+        }
+        button[type="submit"] {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h4>Список клиентов</h4>
+<table style="width: 400px" id="clientsTable">
+    <tr>
+        <td style="width: 50px">Id</td>
+        <td style="width: 150px">Имя</td>
+        <td style="width: 200px">Адрес</td>
+        <td style="width: 200px">Телефон</td>
+    </tr>
+</table>
+
+<h1>Форма создания клиента</h1>
+<form method="post" id="createClientForm" action="">
+    <div class="newClientForm">
+        <label for="name">Имя:</label>
+        <input type="text" id="name" name="name">
+    </div>
+
+    <div class="form-group">
+        <label for="address">Адрес:</label>
+        <textarea id="address" name="address"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="phones">Телефоны:</label>
+        <input type="text" id="phones" name="phones" >
+        <small>(разделите номера телефонов запятой)</small>
+    </div>
+
+    <button onclick="submitForm(); event.preventDefault();" >Создать клиента</button>
+</form>
+
+</body>
+</html>
